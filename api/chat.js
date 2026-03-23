@@ -25,8 +25,15 @@ export default async function handler(req, res) {
   }
 
   const NVIDIA_API_KEY = process.env.NVIDIA_API_KEY;
-  const MODEL = "nvidia/llama-3.1-nemotron-70b-instruct";
   const API_URL = "https://integrate.api.nvidia.com/v1/chat/completions";
+  
+  // Fallback chain — try models in order until one works
+  const MODELS = [
+    "nvidia/llama-3.3-nemotron-super-49b-v1",
+    "meta/llama-3.3-70b-instruct",
+    "nvidia/nemotron-mini-4b-instruct",
+    "meta/llama-3.1-70b-instruct",
+  ];
 
   // ── Step 1: Fetch live internet data ─────────────────────────────────────
   let liveContext = "";
@@ -48,48 +55,59 @@ export default async function handler(req, res) {
 
   const systemPrompt = buildSystemPrompt(database, liveContext, today, dayOfWeek);
 
-  // ── Step 3: Call NVIDIA Nemotron ─────────────────────────────────────────
-  try {
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${NVIDIA_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: MODEL,
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: message }
-        ],
-        temperature: 0.3,
-        max_tokens: 2048,
-        top_p: 0.9,
-      }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.text();
-      console.error("NVIDIA API Error:", response.status, errorData);
-      return res.status(response.status).json({
-        error: `NVIDIA API returned ${response.status}`,
-        details: errorData,
+  // ── Step 3: Call NVIDIA API with fallback models ─────────────────────────
+  let lastError = null;
+  
+  for (const model of MODELS) {
+    try {
+      console.log(`Trying model: ${model}`);
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${NVIDIA_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: model,
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: message }
+          ],
+          temperature: 0.3,
+          max_tokens: 2048,
+          top_p: 0.9,
+        }),
       });
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error(`Model ${model} failed:`, response.status, errorData);
+        lastError = { status: response.status, details: errorData, model };
+        continue; // Try next model
+      }
+
+      const data = await response.json();
+      const assistantMessage = data.choices?.[0]?.message?.content;
+
+      if (!assistantMessage) {
+        lastError = { status: 500, details: 'No response content', model };
+        continue;
+      }
+
+      console.log(`Success with model: ${model}`);
+      return res.status(200).json({ response: assistantMessage, model });
+
+    } catch (err) {
+      console.error(`Model ${model} error:`, err.message);
+      lastError = { status: 500, details: err.message, model };
+      continue;
     }
-
-    const data = await response.json();
-    const assistantMessage = data.choices?.[0]?.message?.content;
-
-    if (!assistantMessage) {
-      return res.status(500).json({ error: 'No response from model' });
-    }
-
-    return res.status(200).json({ response: assistantMessage });
-
-  } catch (err) {
-    console.error("Server error:", err);
-    return res.status(500).json({ error: 'Internal server error', details: err.message });
   }
+
+  // All models failed
+  return res.status(lastError?.status || 500).json({
+    error: `All models failed. Last error from ${lastError?.model}: ${lastError?.details}`,
+  });
 }
 
 // ============================================================================
