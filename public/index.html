@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pants on Fire 🔥 — Political Rhetoric Analyzer</title>
+  <meta name="description" content="Analyze political statements about the Iran conflict and compare them to Iraq War rhetoric. Data-driven historical context for modern war claims.">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">
+      <span class="fire-emoji">🔥</span> Pants on Fire
+    </div>
+    <div class="tagline">Political Rhetoric vs. Historical Reality</div>
+  </div>
+
+  <!-- Messages -->
+  <div id="messages">
+    <div class="welcome">
+      <h2>Does history repeat itself?</h2>
+      <p>
+        Ask about any political claim regarding the current Iran conflict, and I'll compare it to 
+        what politicians said at the start of the Iraq War — and what actually happened.
+      </p>
+      <div class="examples">
+        <button class="example-btn" onclick="useExample(this)">
+          🔍 Trump said he'll stop it soon, is it true?
+        </button>
+        <button class="example-btn" onclick="useExample(this)">
+          📊 How many times has Trump promised a quick victory?
+        </button>
+        <button class="example-btn" onclick="useExample(this)">
+          💰 Trump says the war costs are low, is that accurate?
+        </button>
+        <button class="example-btn" onclick="useExample(this)">
+          ⚔️ Are casualties really as low as they claim?
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Input Area -->
+  <div class="input-area">
+    <div class="input-wrapper">
+      <input 
+        type="text" 
+        id="chat-input" 
+        placeholder="Ask about a political claim..." 
+        autocomplete="off"
+        spellcheck="false"
+      >
+      <button id="send-btn" aria-label="Send message">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"></line>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+        </svg>
+      </button>
+    </div>
+    <div class="disclaimer">
+      Powered by NVIDIA Nemotron LLM · Quotes sourced from public record · Not a substitute for journalism
+    </div>
+  </div>
+
+</div>
+
+<script src="quotes.js"></script>
+<script src="script.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,10 @@
+{
+  "name": "pants-on-fire",
+  "version": "1.0.0",
+  "description": "Political Rhetoric Analyzer — Iran Conflict vs Iraq War",
+  "private": true,
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo 'Static site with serverless functions'"
+  }
+}
